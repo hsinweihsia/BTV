@@ -39,11 +39,11 @@ def get_main_parser():
     parser.add_argument('--wf',
                         '--workflow',
                         dest='workflow',
-                        choices=['ttcom', 'fattag'],
+                        choices=['ttcom', 'fattag','QCD'],
                         help='Which processor to run',
                         required=True)
     parser.add_argument('-o', '--output', default=r'hists.coffea', help='Output histogram filename (default: %(default)s)')
-    parser.add_argument('--samples', '--json', dest='samplejson', default='dummy_samples.json',
+    parser.add_argument('--samples', '--json', dest='samplejson', default='QCD_Pt_samples.json',
                         help='JSON file containing dataset and file locations (default: %(default)s)'
                         )
 
@@ -78,7 +78,7 @@ def get_main_parser():
     parser.add_argument('--skipbadfiles', action='store_true', help='Skip bad files.')
     parser.add_argument('--only', type=str, default=None, help='Only process specific dataset or file')
     parser.add_argument('--limit', type=int, default=None, metavar='N', help='Limit to the first N files of each dataset in sample JSON')
-    parser.add_argument('--chunk', type=int, default=500000, metavar='N', help='Number of events per process chunk')
+    parser.add_argument('--chunk', type=int, default=50000000, metavar='N', help='Number of events per process chunk')
     parser.add_argument('--max', type=int, default=None, metavar='N', help='Max number of chunks to run in total')
     return parser
 
@@ -97,7 +97,7 @@ if __name__ == '__main__':
         sample_dict[key] = sample_dict[key][:args.limit]
     if args.executor == 'dask/casa':
         for key in sample_dict.keys():
-            sample_dict[key] = [path.replace('xrootd-cms.infn.it/', 'xcache') for path in sample_dict[key]]
+            sample_dict[key] = [path.replace('xrootd-cms.infn.it/', 'root://xcache/') for path in sample_dict[key]]
 
     # For debugging
     if args.only is not None:
@@ -145,6 +145,9 @@ if __name__ == '__main__':
     if args.workflow == "ttcom":
         from workflows.ttbar_validation2 import NanoProcessor
         processor_instance = NanoProcessor()
+    elif args.workflow == "QCD":
+        from workflows.QCD_validation import NanoProcessor
+        processor_instance = NanoProcessor()        
     # elif args.workflow == "fattag":
     #     from workflows.fatjet_tagger import NanoProcessor
     #     processor_instance = NanoProcessor()
@@ -324,15 +327,16 @@ if __name__ == '__main__':
         else:
             cluster.adapt(minimum=args.scaleout)
             client = Client(cluster)
-            print("Waiting for at least one worker...")
-            client.wait_for_workers(1)
+            #print("Waiting for at least one worker...")
+            #client.wait_for_workers(1)
         with performance_report(filename="dask-report.html"):
             output = processor.run_uproot_job(sample_dict,
                                               treename='Events',
                                               processor_instance=processor_instance,
-                                              executor=processor.dask_executor,
+                                              #executor=processor.dask_executor,
+                                              executor=processor.futures_executor,
                                               executor_args={
-                                                  'client': client,
+                                                  #'client': client,
                                                   'skipbadfiles': args.skipbadfiles,
                                                   'schema': processor.NanoAODSchema,
                                                   'retries': 3,
