@@ -43,7 +43,7 @@ def get_main_parser():
                         help='Which processor to run',
                         required=True)
     parser.add_argument('-o', '--output', default=r'hists.coffea', help='Output histogram filename (default: %(default)s)')
-    parser.add_argument('--samples', '--json', dest='samplejson', default='QCD_Pt_samples.json',
+    parser.add_argument('--samples', '--json', dest='samplejson', default='QCD_Pt_samples_try.json',
                         help='JSON file containing dataset and file locations (default: %(default)s)'
                         )
 
@@ -73,6 +73,7 @@ def get_main_parser():
     parser.add_argument('--voms', default=None, type=str,
                         help='Path to voms proxy, accessible to worker nodes. By default a copy will be made to $HOME.'
                         )
+    parser.add_argument("--year", default="2018", help="Year")
     # Debugging
     parser.add_argument('--validate', action='store_true', help='Do not process, just check all files are accessible')
     parser.add_argument('--skipbadfiles', action='store_true', help='Skip bad files.')
@@ -88,6 +89,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.output == parser.get_default('output'):
         args.output = f'hists_{args.workflow}_{(args.samplejson).rstrip(".json")}.coffea'
+    corrections = load('correction/corrections.coffea')
 
 
     # load dataset
@@ -144,10 +146,10 @@ if __name__ == '__main__':
     # load workflow
     if args.workflow == "ttcom":
         from workflows.ttbar_validation2 import NanoProcessor
-        processor_instance = NanoProcessor()
+        processor_instance = NanoProcessor(args.year,corrections=corrections)
     elif args.workflow == "QCD":
         from workflows.QCD_validation import NanoProcessor
-        processor_instance = NanoProcessor()        
+        processor_instance = NanoProcessor(args.year,corrections=corrections)        
     # elif args.workflow == "fattag":
     #     from workflows.fatjet_tagger import NanoProcessor
     #     processor_instance = NanoProcessor()
