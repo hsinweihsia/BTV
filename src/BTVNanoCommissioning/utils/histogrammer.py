@@ -1,4 +1,4 @@
-from BTVNanoCommissioning.helpers.definitions import definitions
+from BTVNanoCommissioning.helpers.definitions import definitions,SV_definitions
 import hist as Hist
 
 
@@ -7,8 +7,8 @@ def histogrammer(workflow):
     ## Common variables
     flav_axis = Hist.axis.IntCategory([0, 1, 4, 5, 6], name="flav", label="Genflavour")
     syst_axis = Hist.axis.StrCategory([], name="syst", growth=True)
-    pt_axis = Hist.axis.Regular(50, 0, 200, name="pt", label=" $p_{T}$ [GeV]")
-    jpt_axis = Hist.axis.Regular(50, 0, 300, name="pt", label=" $p_{T}$ [GeV]")
+    pt_axis = Hist.axis.Regular(300, 0, 3000, name="pt", label=" $p_{T}$ [GeV]")
+    jpt_axis = Hist.axis.Regular(300, 0, 3000, name="pt", label=" $p_{T}$ [GeV]")
     softlpt_axis = Hist.axis.Regular(25, 0, 25, name="pt", label=" $p_{T}$ [GeV]")
     mass_axis = Hist.axis.Regular(50, 0, 300, name="mass", label=" $p_{T}$ [GeV]")
     eta_axis = Hist.axis.Regular(25, -2.5, 2.5, name="eta", label=" $\eta$")
@@ -20,6 +20,7 @@ def histogrammer(workflow):
     )
     dr_axis = Hist.axis.Regular(20, 0, 8, name="dr", label="$\Delta$R")
     dr_s_axis = Hist.axis.Regular(20, 0, 0.5, name="dr", label="$\Delta$R")
+    dr_SV_axis = Hist.axis.Regular(20, 0, 1.0, name="dr", label="$\Delta$R")
     dxy_axis = Hist.axis.Regular(40, -0.05, 0.05, name="dxy", label="d_{xy}")
     dz_axis = Hist.axis.Regular(40, -0.01, 0.01, name="dz", label="d_{z}")
     qcddxy_axis = Hist.axis.Regular(40, -0.002, 0.002, name="dxy", label="d_{xy}")
@@ -27,9 +28,24 @@ def histogrammer(workflow):
     ptratio_axis = Hist.axis.Regular(50, 0, 1, name="ratio", label="ratio")
     n_axis = Hist.axis.Integer(0, 10, name="n", label="N obj")
     osss_axis = Hist.axis.IntCategory([1, -1], name="osss", label="OS(+)/SS(-)")
+    genweight_axis = Hist.axis.Regular(400, -200, 200, name="genWeight", label="genWeight")
+    Pileup_nTrueInt_axis = Hist.axis.Regular(100, 0, 100, name="Pileup_nTrueInt", label="Pileup_nTrueInt")
+    PV_npvsGood_axis = Hist.axis.Regular(100, 0, 100, name="PV_npvsGood", label="PV_npvsGood")
     ### Workflow specific
     if "validation" == workflow:
         obj_list = ["jet0", "jet1"]
+    elif "QCD" == workflow:
+        obj_list = ["jet0"]
+        _hist_dict["dr_SVjet0"] = Hist.Hist(
+            flav_axis, dr_SV_axis, Hist.storage.Weight()
+        )
+        _hist_dict["nJetSVs"] = Hist.Hist(n_axis, Hist.storage.Weight())
+        _hist_dict["genWeight"] = Hist.Hist(genweight_axis)
+        _hist_dict["all_jet0_pt"] = Hist.Hist(jpt_axis)
+        _hist_dict["unw_PV_npvsGood"] = Hist.Hist(PV_npvsGood_axis)
+        _hist_dict["weighted_PV_npvsGood"] = Hist.Hist(PV_npvsGood_axis, Hist.storage.Weight())
+        _hist_dict["unw_Pileup_nTrueInt"] = Hist.Hist(Pileup_nTrueInt_axis)
+        _hist_dict["weighted_Pileup_nTrueInt"] = Hist.Hist(Pileup_nTrueInt_axis,Hist.storage.Weight())
     elif "ttcom" == workflow:
         obj_list = ["mu", "ele"]
         for i in range(2):
@@ -347,6 +363,23 @@ def histogrammer(workflow):
                 Hist.axis.Regular(binning, ranges[0], ranges[1], name=d, label=labels),
                 Hist.storage.Weight(),
             )
+            
+            
+    ### JetSVs variables
+    SV_bininfo = SV_definitions()
+    for d in SV_bininfo.keys():
+        ranges = SV_bininfo[d]["manual_ranges"]
+        binning = SV_bininfo[d]["bins"]
+        labels = (
+            SV_bininfo[d]["displayname"] + " [" + SV_bininfo[d]["inputVar_units"] + "]"
+            if SV_bininfo[d]["inputVar_units"] is not None
+            else SV_bininfo[d]["displayname"]
+        )
+        _hist_dict[d] = Hist.Hist(
+            flav_axis,
+            Hist.axis.Regular(binning, ranges[0], ranges[1], name=d, label=labels),
+            Hist.storage.Weight(),
+        )
     ### discriminators
     disc_list = [
         "btagDeepB",

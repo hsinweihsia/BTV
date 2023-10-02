@@ -52,6 +52,11 @@ from BTVNanoCommissioning.workflows.BTA_producer import (
 #     NanoProcessor as ExampleProcessor,
 # )
 
+##QCD - Hsin-Wei's modification
+from BTVNanoCommissioning.workflows.QCD_validation import (
+    NanoProcessor as QCDValidProcessor,
+)
+
 # FIXME - make names more systematic?
 workflows = {}
 workflows["validation"] = ValidationProcessor
@@ -66,6 +71,8 @@ workflows["ectag_ttdilep_sf"] = CTAGEDilepttValidSFProcessor
 workflows["ctag_ttsemilep_sf"] = CTAGSemilepttValidSFProcessor
 workflows["ectag_ttsemilep_sf"] = CTAGETTSemilepValidSFProcessor
 
+##QCD - Hsin-Wei's modification
+workflows["QCD"] = QCDValidProcessor
 
 # W+c
 workflows["ctag_Wc_sf"] = CTAGWcValidSFProcessor

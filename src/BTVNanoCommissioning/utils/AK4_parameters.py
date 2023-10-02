@@ -47,4 +47,10 @@ correction_config = {
         "lumiMask": "Cert_Collisions2022_355100_362760_Golden.json",
         "JME": "jec_compiled.pkl.gz",
     },
+    "2018_UL": {
+        "lumiMask": "Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt",
+        "PU": "puweight_2018_UL.HLTPFJet140.histo.root",
+        "JME": "jec_compiled.pkl.gz",
+        "BTV": {"deepCSV": "shape"},
+    },
 }

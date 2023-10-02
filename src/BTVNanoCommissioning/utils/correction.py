@@ -16,7 +16,7 @@ from BTVNanoCommissioning.helpers.cTagSFReader import getSF
 from BTVNanoCommissioning.utils.AK4_parameters import correction_config as config
 
 
-def load_SF(campaign, syst=False):
+def load_SF(campaign, syst=False,isHLT=False):
     correction_map = {}
     for SF in config[campaign].keys():
         if SF == "lumiMask":
@@ -26,7 +26,7 @@ def load_SF(campaign, syst=False):
             ## Check whether files in jsonpog-integration exist
             if os.path.exists(
                 f"src/BTVNanoCommissioning/jsonpog-integration/POG/LUM/{campaign}"
-            ):
+            ) and not isHLT:
                 correction_map["PU"] = correctionlib.CorrectionSet.from_file(
                     f"src/BTVNanoCommissioning/jsonpog-integration/POG/LUM/{campaign}/puWeights.json.gz"
                 )
